@@ -13,31 +13,59 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = require("./db");
+const JWT_PASSWORD = "asdasdasasgfa";
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.post("/api/v1/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //use zod and hash the password
     const username = req.body.username;
     const password = req.body.password;
-    yield db_1.UserModel.create({
-        username: username,
-        password: password
-    });
-    res.json({
-        message: " User signed in"
-    });
+    try {
+        yield db_1.UserModel.create({
+            username: username,
+            password: password
+        });
+        res.json({
+            message: " User signed in"
+        });
+    }
+    catch (e) {
+        res.status(411).json({
+            message: "User already exist"
+        });
+    }
 }));
-app.post("./api/v1/signin", (req, res) => {
+app.post("/api/v1/signin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const username = req.body.username;
+    const password = req.body.password;
+    const existingUser = yield db_1.UserModel.findOne({
+        username,
+        password
+    });
+    if (existingUser) {
+        const token = jsonwebtoken_1.default.sign({
+            id: existingUser._id
+        }, JWT_PASSWORD);
+        res.json({
+            token
+        });
+    }
+    else {
+        res.status(403).json({
+            message: " incorrect credentials"
+        });
+    }
+}));
+app.post("/api/v1/content", (req, res) => {
 });
-app.post("./api/v1/content", (req, res) => {
+app.get("/api/v1/content", (req, res) => {
 });
-app.get("./api/v1/content", (req, res) => {
+app.delete("/api/v1/signin", (req, res) => {
 });
-app.delete("./api/v1/signin", (req, res) => {
+app.post("/api/v1/brain/share", (req, res) => {
 });
-app.post("./api/v1/brain/share", (req, res) => {
-});
-app.get("./api/v1/brain/:shareLink", (req, res) => {
+app.get("/api/v1/brain/:shareLink", (req, res) => {
 });
 app.listen(3000);
