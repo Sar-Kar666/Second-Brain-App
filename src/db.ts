@@ -1,5 +1,4 @@
 import mongoose ,{model,Schema} from "mongoose";
-import { API_KEY } from "./config";
 
 const UserSchema=new Schema({
     username: {type: String, unique: true},

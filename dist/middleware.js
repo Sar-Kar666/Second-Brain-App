@@ -15,6 +15,7 @@ const userMiddileware = (req, res, next) => {
         next();
     }
     else {
+        message: "You are not logged in";
     }
 };
 exports.userMiddileware = userMiddileware;

@@ -11,7 +11,7 @@ import { JWT_PASSWORD } from "./config";
         req.userId=decoded.id;
         next();
     }else{
-        
+        message:"You are not logged in"
     }
    
 
