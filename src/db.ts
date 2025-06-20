@@ -1,6 +1,5 @@
 import mongoose ,{model,Schema} from "mongoose";
-mongoose.connect("mongodb+srv://admin:wyArcxLoww3YzzMO@cluster0.amlcxqh.mongodb.net/second_brain")
-
+import { API_KEY } from "./config";
 
 const UserSchema=new Schema({
     username: {type: String, unique: true},

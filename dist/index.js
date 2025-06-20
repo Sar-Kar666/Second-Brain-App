@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = require("./db");
-const JWT_PASSWORD = "asdasdasasgfa";
+const config_1 = require("./config");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.post("/api/v1/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -47,7 +47,7 @@ app.post("/api/v1/signin", (req, res) => __awaiter(void 0, void 0, void 0, funct
     if (existingUser) {
         const token = jsonwebtoken_1.default.sign({
             id: existingUser._id
-        }, JWT_PASSWORD);
+        }, config_1.JWT_PASSWORD);
         res.json({
             token
         });
@@ -59,6 +59,8 @@ app.post("/api/v1/signin", (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 }));
 app.post("/api/v1/content", (req, res) => {
+    const link = req.body.link;
+    const type = req.body.type;
 });
 app.get("/api/v1/content", (req, res) => {
 });
