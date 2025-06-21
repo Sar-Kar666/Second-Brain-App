@@ -15,3 +15,4 @@ const ConetentSchema=new Schema({
     userId:{type: mongoose.Types.ObjectId, ref:'User', require: true}
 }) 
 
+export const ContentModel=model("Content",ConetentSchema);
