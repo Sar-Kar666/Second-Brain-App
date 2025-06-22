@@ -59,12 +59,12 @@ app.post("/api/v1/signin", (req, res) => __awaiter(void 0, void 0, void 0, funct
         });
     }
 }));
-app.post("/api/v1/content", middleware_1.userMiddileware, (req, res) => {
+app.post("/api/v1/content", middleware_1.userMiddileware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const title = req.body.title;
     const link = req.body.link;
-    const type = req.body.type;
-    db_1.ContentModel.create({
+    yield db_1.ContentModel.create({
+        title,
         link,
-        type,
         //@ts-ignore
         userId: req.userId,
         tags: []
@@ -72,9 +72,17 @@ app.post("/api/v1/content", middleware_1.userMiddileware, (req, res) => {
     res.json({
         message: "Content Added"
     });
-});
-app.get("/api/v1/content", (req, res) => {
-});
+}));
+app.get("/api/v1/content", middleware_1.userMiddileware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //@ts-ignore    
+    const userId = req.userId;
+    const content = yield db_1.ContentModel.find({
+        userId: userId
+    }).populate("userId", "username");
+    res.json({
+        content
+    });
+}));
 app.delete("/api/v1/signin", (req, res) => {
 });
 app.post("/api/v1/brain/share", (req, res) => {

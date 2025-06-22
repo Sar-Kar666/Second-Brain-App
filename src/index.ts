@@ -57,12 +57,13 @@ app.post("/api/v1/signin", async (req, res) => {
 
 })
 
-app.post("/api/v1/content",userMiddileware, (req, res) => {
+app.post("/api/v1/content",userMiddileware, async (req, res) => {
+    const title= req.body.title;
     const link= req.body.link;
-    const type= req.body.type;
-    ContentModel.create({
+    
+     await ContentModel.create({
+        title,
         link,
-        type,
         //@ts-ignore
         userId: req.userId,
         tags:[]
@@ -75,7 +76,16 @@ app.post("/api/v1/content",userMiddileware, (req, res) => {
 
 })
 
-app.get("/api/v1/content", (req, res) => {
+app.get("/api/v1/content",userMiddileware, async (req, res) => {
+    //@ts-ignore    
+    const userId=req.userId;
+    const content =await ContentModel.find({
+        userId: userId
+    }).populate("userId","username")
+
+    res.json({
+        content
+    })
 
 })
 
