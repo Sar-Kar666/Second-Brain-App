@@ -17,6 +17,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = require("./db");
 const config_1 = require("./config");
 const middleware_1 = require("./middleware");
+const utils_1 = require("./utils");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.post("/api/v1/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -83,10 +84,73 @@ app.get("/api/v1/content", middleware_1.userMiddileware, (req, res) => __awaiter
         content
     });
 }));
-app.delete("/api/v1/signin", (req, res) => {
-});
-app.post("/api/v1/brain/share", (req, res) => {
-});
-app.get("/api/v1/brain/:shareLink", (req, res) => {
-});
+app.delete("/api/v1/content", middleware_1.userMiddileware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const title = req.body.title;
+    yield db_1.ContentModel.deleteMany({
+        title,
+        //@ts-ignore
+        userId: req.userId
+    });
+    res.json({
+        message: "deleted"
+    });
+}));
+app.post("/api/v1/brain/share", middleware_1.userMiddileware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const share = req.body.share;
+    //asking for link again
+    if (share) {
+        const existinglink = yield db_1.LinkModel.findOne({
+            // @ts-ignore
+            userId: req.userId
+        });
+        if (existinglink) {
+            res.json({
+                hash: existinglink.hash
+            });
+            return;
+        }
+        // creating the link at the first palce
+        const hash = (0, utils_1.random)(10);
+        yield db_1.LinkModel.create({
+            //@ts-ignore
+            userId: req.userId,
+            hash: hash
+        });
+        res.json({
+            message: "/share/" + hash
+        });
+    }
+    else {
+        yield db_1.LinkModel.deleteOne({
+            //@ts-ignore
+            userId: req.userId
+        });
+        res.json({
+            message: "link removed"
+        });
+    }
+}));
+app.get("/api/v1/brain/:shareLink", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const hash = req.params.shareLink;
+    const link = yield db_1.LinkModel.findOne({
+        hash
+    });
+    if (!link) {
+        res.status(411).json({
+            message: "Sorry incorrect input "
+        });
+        return;
+    }
+    const content = yield db_1.ContentModel.findOne({
+        userId: link.userId
+    });
+    const user = yield db_1.UserModel.findOne({
+        _id: link.userId
+    });
+    res.json({
+        //@ts-ignore
+        username: user.username,
+        content: content
+    });
+}));
 app.listen(3000);

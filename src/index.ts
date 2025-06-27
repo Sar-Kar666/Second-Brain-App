@@ -1,8 +1,9 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import { ContentModel, UserModel } from "./db";
+import { ContentModel, LinkModel, UserModel } from "./db";
 import { JWT_PASSWORD } from "./config";
 import { userMiddileware } from "./middleware";
+import { random } from "./utils";
 
 
 
@@ -35,7 +36,7 @@ app.post("/api/v1/signup", async (req, res) => {
 app.post("/api/v1/signin", async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
-    
+
     const existingUser = await UserModel.findOne({
         username,
         password
@@ -57,31 +58,31 @@ app.post("/api/v1/signin", async (req, res) => {
 
 })
 
-app.post("/api/v1/content",userMiddileware, async (req, res) => {
-    const title= req.body.title;
-    const link= req.body.link;
-    
-     await ContentModel.create({
+app.post("/api/v1/content", userMiddileware, async (req, res) => {
+    const title = req.body.title;
+    const link = req.body.link;
+
+    await ContentModel.create({
         title,
         link,
         //@ts-ignore
         userId: req.userId,
-        tags:[]
+        tags: []
 
     })
 
     res.json({
-        message:"Content Added"
+        message: "Content Added"
     })
 
 })
 
-app.get("/api/v1/content",userMiddileware, async (req, res) => {
+app.get("/api/v1/content", userMiddileware, async (req, res) => {
     //@ts-ignore    
-    const userId=req.userId;
-    const content =await ContentModel.find({
+    const userId = req.userId;
+    const content = await ContentModel.find({
         userId: userId
-    }).populate("userId","username")
+    }).populate("userId", "username")
 
     res.json({
         content
@@ -89,15 +90,96 @@ app.get("/api/v1/content",userMiddileware, async (req, res) => {
 
 })
 
-app.delete("/api/v1/signin", (req, res) => {
+app.delete("/api/v1/content", userMiddileware, async (req, res) => {
+    const title = req.body.title;
+
+    await ContentModel.deleteMany({
+        title,
+        //@ts-ignore
+        userId: req.userId
+    })
+
+    res.json({
+        message: "deleted"
+    })
+})
+
+app.post("/api/v1/brain/share", userMiddileware, async (req, res) => {
+
+    const share = req.body.share;
+
+    //asking for link again
+    if (share) {
+        const existinglink = await LinkModel.findOne({
+            // @ts-ignore
+            userId: req.userId
+        });
+
+        if (existinglink) {
+
+            res.json({
+                hash: existinglink.hash
+            })
+
+            return;
+        }
+
+
+        // creating the link at the first palce
+        const hash = random(10);
+        await LinkModel.create({
+            //@ts-ignore
+            userId: req.userId,
+            hash: hash
+        })
+        res.json({
+            message: "/share/" + hash
+        })
+
+    }
+
+    else {
+        await LinkModel.deleteOne({
+            //@ts-ignore
+            userId: req.userId
+
+        })
+
+        res.json({
+            message: "link removed"
+        })
+    }
+
+
 
 })
 
-app.post("/api/v1/brain/share", (req, res) => {
+app.get("/api/v1/brain/:shareLink", async (req, res) => {
+    const hash = req.params.shareLink;
 
-})
+    const link = await LinkModel.findOne({
+        hash
+    })
 
-app.get("/api/v1/brain/:shareLink", (req, res) => {
+    if (!link) {
+        res.status(411).json({
+            message: "Sorry incorrect input "
+        })
+        return;
+    }
+
+    const content = await ContentModel.findOne({
+        userId : link.userId
+    })
+
+    const user = await UserModel.findOne({
+        _id : link.userId
+    })
+    res.json({
+        //@ts-ignore
+        username : user.username,
+        content: content
+    })
 
 })
 
